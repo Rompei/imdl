@@ -14,7 +14,7 @@ func TestStoreImage(t *testing.T) {
 	os.Setenv("IMAGE_DIR", "images")
 	c := make(chan string, len(URLs))
 	for _, u := range URLs {
-		Download(u, c)
+		go Download(u, c)
 	}
 
 	for i := 0; i < len(URLs); i++ {
