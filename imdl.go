@@ -7,10 +7,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 // Download stores an image from url.
-func Download(url string, fnameCh chan string) {
+func Download(url string, fnameCh chan string, m *sync.Mutex) {
 	ext := filepath.Ext(url)
 	if ext == "" {
 		fnameCh <- ""
@@ -34,13 +35,14 @@ func Download(url string, fnameCh chan string) {
 	}
 	fname := fmt.Sprintf("%x%s", md5.Sum(data), ext)
 
+	m.Lock()
 	file, err := os.Create(dir + "/" + fname)
 	if err != nil {
 		fnameCh <- ""
 		return
 	}
 	defer file.Close()
-
+	defer m.Unlock()
 	file.Write(data)
 	fnameCh <- fname
 }

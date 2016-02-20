@@ -2,6 +2,7 @@ package imdl
 
 import (
 	"os"
+	"sync"
 	"testing"
 )
 
@@ -13,8 +14,9 @@ var URLs = []string{
 func TestStoreImage(t *testing.T) {
 	os.Setenv("IMAGE_DIR", "images")
 	c := make(chan string, len(URLs))
+	var m sync.Mutex
 	for _, u := range URLs {
-		go Download(u, c)
+		go Download(u, c, &m)
 	}
 
 	for i := 0; i < len(URLs); i++ {
