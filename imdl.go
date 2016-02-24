@@ -1,6 +1,7 @@
 package imdl
 
 import (
+	"bytes"
 	"crypto/md5"
 	"fmt"
 	"github.com/nfnt/resize"
@@ -27,19 +28,21 @@ func Download(url string, fnameCh chan string, x, y uint, compress bool, m *sync
 		return
 	}
 	defer resp.Body.Close()
-	img, _, err := image.Decode(resp.Body)
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fnameCh <- ""
+		return
+	}
+
+	buf := bytes.NewBuffer(data)
+
+	img, _, err := image.Decode(buf)
 	if err != nil {
 		fnameCh <- ""
 		return
 	}
 	if x != 0 && y != 0 {
 		img = resize.Resize(x, y, img, resize.Lanczos3)
-	}
-
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fnameCh <- ""
-		return
 	}
 
 	var dir string
