@@ -15,9 +15,8 @@ func TestStoreImage(t *testing.T) {
 	os.Setenv("IMAGE_DIR", "images")
 	c := make(chan string, len(URLs))
 	var m sync.Mutex
-	for _, u := range URLs {
-		go Download(u, c, &m)
-	}
+	go Download(URLs[0], c, 480, 360, true, &m)
+	go Download(URLs[0], c, 480, 360, false, &m)
 
 	for i := 0; i < len(URLs); i++ {
 		fname := <-c

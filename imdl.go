@@ -3,6 +3,10 @@ package imdl
 import (
 	"crypto/md5"
 	"fmt"
+	"github.com/nfnt/resize"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -11,7 +15,7 @@ import (
 )
 
 // Download stores an image from url.
-func Download(url string, fnameCh chan string, m *sync.Mutex) {
+func Download(url string, fnameCh chan string, x, y uint, compress bool, m *sync.Mutex) {
 	ext := filepath.Ext(url)
 	if ext == "" {
 		fnameCh <- ""
@@ -23,6 +27,15 @@ func Download(url string, fnameCh chan string, m *sync.Mutex) {
 		return
 	}
 	defer resp.Body.Close()
+	img, _, err := image.Decode(resp.Body)
+	if err != nil {
+		fnameCh <- ""
+		return
+	}
+	if x != 0 && y != 0 {
+		img = resize.Resize(x, y, img, resize.Lanczos3)
+	}
+
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fnameCh <- ""
@@ -33,16 +46,34 @@ func Download(url string, fnameCh chan string, m *sync.Mutex) {
 	if dir = os.Getenv("IMAGE_DIR"); dir == "" {
 		dir = "."
 	}
-	fname := fmt.Sprintf("%x%s", md5.Sum(data), ext)
 
-	m.Lock()
-	file, err := os.Create(dir + "/" + fname)
-	if err != nil {
+	path := fmt.Sprintf("%s/%x", dir, md5.Sum(data))
+	if compress {
+		path += ".jpg"
+	} else {
+		path += ".png"
+	}
+	if err = saveImage(path, img, compress, m); err != nil {
 		fnameCh <- ""
 		return
 	}
-	defer file.Close()
+	fnameCh <- path
+}
+
+func saveImage(path string, img image.Image, compress bool, m *sync.Mutex) error {
+	m.Lock()
 	defer m.Unlock()
-	file.Write(data)
-	fnameCh <- fname
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Compless image.
+	if compress {
+		err = jpeg.Encode(file, img, &jpeg.Options{jpeg.DefaultQuality})
+	} else {
+		err = png.Encode(file, img)
+	}
+	return err
 }
