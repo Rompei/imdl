@@ -2,6 +2,7 @@ package imdl
 
 import (
 	"os"
+	"runtime"
 	"sync"
 	"testing"
 )
@@ -21,9 +22,10 @@ var URLs = []string{
 func TestStoreImage(t *testing.T) {
 	os.Setenv("IMAGE_DIR", "images")
 	c := make(chan string, len(URLs))
+	errCh := make(chan error, runtime.NumCPU())
 	var m sync.Mutex
 	for _, u := range URLs {
-		go Download(u, c, 680, 480, false, &m)
+		go Download(u, c, errCh, 680, 480, false, &m)
 	}
 
 	for i := 0; i < len(URLs); i++ {
@@ -35,9 +37,10 @@ func TestStoreImage(t *testing.T) {
 func TestStoreImageCompress(t *testing.T) {
 	os.Setenv("IMAGE_DIR", "images")
 	c := make(chan string, len(URLs))
+	errCh := make(chan error, runtime.NumCPU())
 	var m sync.Mutex
 	for _, u := range URLs {
-		go Download(u, c, 680, 480, true, &m)
+		go Download(u, c, errCh, 680, 480, true, &m)
 	}
 
 	for i := 0; i < len(URLs); i++ {

@@ -3,6 +3,7 @@ package imdl
 import (
 	"bytes"
 	"crypto/md5"
+	"errors"
 	"fmt"
 	"github.com/nfnt/resize"
 	"image"
@@ -16,21 +17,21 @@ import (
 )
 
 // Download stores an image from url.
-func Download(url string, fnameCh chan string, x, y uint, compress bool, m *sync.Mutex) {
+func Download(url string, fnameCh chan string, errCh chan error, x, y uint, compress bool, m *sync.Mutex) {
 	ext := filepath.Ext(url)
 	if ext == "" {
-		fnameCh <- ""
+		errCh <- errors.New("Extention was not detected.")
 		return
 	}
 	resp, err := http.Get(url)
 	if err != nil {
-		fnameCh <- ""
+		errCh <- err
 		return
 	}
 	defer resp.Body.Close()
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fnameCh <- ""
+		errCh <- err
 		return
 	}
 
@@ -38,7 +39,7 @@ func Download(url string, fnameCh chan string, x, y uint, compress bool, m *sync
 
 	img, _, err := image.Decode(buf)
 	if err != nil {
-		fnameCh <- ""
+		errCh <- err
 		return
 	}
 	if x != 0 && y != 0 {
@@ -57,7 +58,7 @@ func Download(url string, fnameCh chan string, x, y uint, compress bool, m *sync
 		path += ".png"
 	}
 	if err = saveImage(path, img, compress, m); err != nil {
-		fnameCh <- ""
+		errCh <- err
 		return
 	}
 	fnameCh <- path
