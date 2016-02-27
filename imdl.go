@@ -51,17 +51,20 @@ func Download(url string, fnameCh chan string, errCh chan error, x, y uint, comp
 		dir = "."
 	}
 
-	path := fmt.Sprintf("%s/%x", dir, md5.Sum(data))
+	fname := fmt.Sprintf("%x", md5.Sum(data))
+	path := fmt.Sprintf("%s/%x", dir, fname)
 	if compress {
+		fname += ".jpg"
 		path += ".jpg"
 	} else {
+		fname += ".png"
 		path += ".png"
 	}
 	if err = saveImage(path, img, compress, m); err != nil {
 		errCh <- err
 		return
 	}
-	fnameCh <- path
+	fnameCh <- fname
 }
 
 func saveImage(path string, img image.Image, compress bool, m *sync.Mutex) error {
