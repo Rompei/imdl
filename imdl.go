@@ -52,7 +52,7 @@ func Download(url string, fnameCh chan string, errCh chan error, x, y uint, comp
 	}
 
 	fname := fmt.Sprintf("%x", md5.Sum(data))
-	path := fmt.Sprintf("%s/%x", dir, fname)
+	path := fmt.Sprintf("%s/%s", dir, fname)
 	if compress {
 		fname += ".jpg"
 		path += ".jpg"
