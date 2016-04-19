@@ -48,3 +48,31 @@ func TestStoreImageCompress(t *testing.T) {
 		t.Log(fname)
 	}
 }
+
+func TestDownloadToPath(t *testing.T) {
+	c := make(chan string, len(URLs))
+	errCh := make(chan error, runtime.NumCPU())
+	var m sync.Mutex
+	for _, u := range URLs {
+		go DownloadToPath(u, "images", c, errCh, 680, 480, true, &m)
+	}
+
+	for i := 0; i < len(URLs); i++ {
+		fname := <-c
+		t.Log(fname)
+	}
+}
+
+func TestDownloadToPathToUnExistPath(t *testing.T) {
+	c := make(chan string, len(URLs))
+	errCh := make(chan error, runtime.NumCPU())
+	var m sync.Mutex
+	for _, u := range URLs {
+		go DownloadToPath(u, "not_exist", c, errCh, 680, 480, true, &m)
+	}
+
+	for i := 0; i < len(URLs); i++ {
+		fname := <-c
+		t.Log(fname)
+	}
+}
