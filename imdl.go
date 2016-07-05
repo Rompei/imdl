@@ -129,8 +129,8 @@ func DownloadToPath(url, dir string, fnameCh chan string, errCh chan error, x, y
 	fnameCh <- fname
 }
 
-// DownloadToPathNoem download normally to directory.
-func DownloadToPathNoem(url, dir string, x, y uint, compress bool, m *sync.Mutex) (string, error) {
+// DownloadToPathNorm download normally to directory.
+func DownloadToPathNorm(url, dir string, x, y uint, compress bool, m *sync.Mutex) (string, error) {
 	ext := filepath.Ext(url)
 	if ext == "" {
 		return "", fmt.Errorf("Extention was not detected.")
