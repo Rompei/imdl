@@ -29,8 +29,12 @@ func TestStoreImage(t *testing.T) {
 	}
 
 	for i := 0; i < len(URLs); i++ {
-		fname := <-c
-		t.Log(fname)
+		select {
+		case fname := <-c:
+			t.Log(fname)
+		case err := <-errCh:
+			t.Fatal(err)
+		}
 	}
 }
 
@@ -44,8 +48,12 @@ func TestStoreImageCompress(t *testing.T) {
 	}
 
 	for i := 0; i < len(URLs); i++ {
-		fname := <-c
-		t.Log(fname)
+		select {
+		case fname := <-c:
+			t.Log(fname)
+		case err := <-errCh:
+			t.Fatal(err)
+		}
 	}
 }
 
@@ -58,8 +66,12 @@ func TestDownloadToPath(t *testing.T) {
 	}
 
 	for i := 0; i < len(URLs); i++ {
-		fname := <-c
-		t.Log(fname)
+		select {
+		case fname := <-c:
+			t.Log(fname)
+		case err := <-errCh:
+			t.Fatal(err)
+		}
 	}
 }
 
@@ -72,7 +84,11 @@ func TestDownloadToPathToUnExistPath(t *testing.T) {
 	}
 
 	for i := 0; i < len(URLs); i++ {
-		fname := <-c
-		t.Log(fname)
+		select {
+		case fname := <-c:
+			t.Log(fname)
+		case err := <-errCh:
+			t.Fatal(err)
+		}
 	}
 }
