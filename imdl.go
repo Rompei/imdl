@@ -3,7 +3,6 @@ package imdl
 import (
 	"bytes"
 	"crypto/md5"
-	"errors"
 	"fmt"
 	"github.com/nfnt/resize"
 	"image"
@@ -20,7 +19,7 @@ import (
 func Download(url string, fnameCh chan string, errCh chan error, x, y uint, compress bool, m *sync.Mutex) {
 	ext := filepath.Ext(url)
 	if ext == "" {
-		errCh <- errors.New("Extention was not detected.")
+		errCh <- fmt.Errorf("Extention was not detected.")
 		return
 	}
 	img, data, err := getImage(url)
@@ -53,11 +52,45 @@ func Download(url string, fnameCh chan string, errCh chan error, x, y uint, comp
 	fnameCh <- fname
 }
 
+// DownloadNorm is normal download.
+func DownloadNorm(url string, x, y uint, compress bool, m *sync.Mutex) (string, error) {
+	ext := filepath.Ext(url)
+	if ext == "" {
+		return "", fmt.Errorf("Extention was not detected.")
+	}
+	img, data, err := getImage(url)
+	if err != nil {
+		return "", err
+	}
+	if x != 0 && y != 0 {
+		img = resize.Resize(x, y, img, resize.Lanczos3)
+	}
+
+	var dir string
+	if dir = os.Getenv("IMAGE_DIR"); dir == "" {
+		dir = "."
+	}
+
+	fname := fmt.Sprintf("%x", md5.Sum(data))
+	path := fmt.Sprintf("%s/%s", dir, fname)
+	if compress {
+		fname += ".jpg"
+		path += ".jpg"
+	} else {
+		fname += ".png"
+		path += ".png"
+	}
+	if err = saveImage(path, img, compress, m); err != nil {
+		return "", err
+	}
+	return fname, nil
+}
+
 // DownloadToPath downloads image to specified path.
 func DownloadToPath(url, dir string, fnameCh chan string, errCh chan error, x, y uint, compress bool, m *sync.Mutex) {
 	ext := filepath.Ext(url)
 	if ext == "" {
-		errCh <- errors.New("Extention was not detected.")
+		errCh <- fmt.Errorf("Extention was not detected.")
 		return
 	}
 	img, data, err := getImage(url)
@@ -94,6 +127,45 @@ func DownloadToPath(url, dir string, fnameCh chan string, errCh chan error, x, y
 		return
 	}
 	fnameCh <- fname
+}
+
+// DownloadToPathNoem download normally to directory.
+func DownloadToPathNoem(url, dir string, x, y uint, compress bool, m *sync.Mutex) (string, error) {
+	ext := filepath.Ext(url)
+	if ext == "" {
+		return "", fmt.Errorf("Extention was not detected.")
+	}
+	img, data, err := getImage(url)
+	if err != nil {
+		return "", err
+	}
+	if x != 0 && y != 0 {
+		img = resize.Resize(x, y, img, resize.Lanczos3)
+	}
+
+	if dir == "" {
+		dir = "."
+	}
+
+	if !fileIsExist(dir) {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return "", err
+		}
+	}
+
+	fname := fmt.Sprintf("%x", md5.Sum(data))
+	path := fmt.Sprintf("%s/%s", dir, fname)
+	if compress {
+		fname += ".jpg"
+		path += ".jpg"
+	} else {
+		fname += ".png"
+		path += ".png"
+	}
+	if err = saveImage(path, img, compress, m); err != nil {
+		return "", err
+	}
+	return fname, nil
 }
 
 func getImage(url string) (image.Image, []byte, error) {
