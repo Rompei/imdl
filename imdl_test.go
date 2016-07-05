@@ -8,7 +8,6 @@ import (
 )
 
 var URLs = []string{
-	"http://img.cupo.cc/wp-content/uploads/comment/2015/09/159755f270a3492d7.jpg",
 	"https://i.ytimg.com/vi/e12aBCICrl4/maxresdefault.jpg",
 	"http://blog-imgs-43.fc2.com/t/n/7/tn777dome/20141004232349bf4.jpg",
 	"http://blog-imgs-65.fc2.com/h/a/t/hatsunemiku1006/20140624193649b83.jpg",
